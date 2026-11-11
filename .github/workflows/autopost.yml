@@ -33,6 +33,7 @@ jobs:
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
           THREADS_USER_ID: ${{ vars.THREADS_USER_ID }}
           MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
+          AUTOPOST_ENABLED: ${{ vars.AUTOPOST_ENABLED }}
           DRY_RUN: ${{ github.event.inputs.dry_run || vars.DRY_RUN || '0' }}
         run: python scripts/publish.py
       - name: Save published state

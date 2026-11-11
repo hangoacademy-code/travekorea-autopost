@@ -222,6 +222,9 @@ def save_state(state):
 
 
 def main():
+    if not DRY and ENV("AUTOPOST_ENABLED") != "true":
+        print("Autopost OFF: set repo variable AUTOPOST_ENABLED=true to go live. Nothing posted.")
+        return 0
     posts = load(POSTS, [])
     state = load(STATE, {})
     now = datetime.now(timezone.utc)

@@ -58,13 +58,14 @@ Stiker interaktif IG Story (polling, kuis, link) **tidak bisa** ditambahkan lewa
    - Secrets: `META_PAGE_TOKEN`, `THREADS_TOKEN`, `GH_ADMIN_TOKEN`
    - Variables: `META_PAGE_ID`, `META_IG_USER_ID`, `THREADS_USER_ID`, `MEDIA_BASE_URL` = `https://<username>.github.io/travekorea-autopost/media`
 4. Actions → **Travekorea autopost** → **Run workflow** dengan `dry_run = 1` untuk tes. Log-nya akan menampilkan post apa saja yang akan tayang.
+5. **Nyalakan autopost:** tambahkan Variable `AUTOPOST_ENABLED` = `true`. Selama variable ini belum ada, sistem tidak akan memposting apa pun.
 
 **Jangan pernah** menaruh token di file, chat, atau commit. Token hanya boleh disimpan di GitHub Secrets.
 
 ---
 
 ## Operasional
-- **Menghentikan semua posting:** Actions → Travekorea autopost → ⋯ → **Disable workflow**.
+- **Menghentikan semua posting:** ubah Variable `AUTOPOST_ENABLED` menjadi `false`, atau Actions → Travekorea autopost → ⋯ → **Disable workflow**.
 - **Membatalkan satu post:** tambahkan `"skip": true` di post tersebut dalam `posts.json`.
 - **Cek sebelum upload bank konten baru:** `python scripts/validate.py`
 - **Melihat yang sudah tayang atau gagal:** buka `state/published.json`. Isinya status `ok`, `error` (akan dicoba lagi 15 menit kemudian), atau `missed`.
