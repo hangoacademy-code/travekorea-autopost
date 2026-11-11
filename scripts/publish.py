@@ -103,9 +103,15 @@ def ig_publish(post):
             p["cover_url"] = media_url(post["cover"])
         cid = call("POST", ep, p)["id"]
     elif fmt == "story":
-        p = {"media_type": "STORIES", "access_token": tok}
-        p["video_url" if is_video(media[0]) else "image_url"] = media_url(media[0])
-        cid = call("POST", ep, p)["id"]
+        ids = []
+        for m in media:  # several media = consecutive stories (e.g. quiz question, then answer)
+            p = {"media_type": "STORIES", "access_token": tok}
+            p["video_url" if is_video(m) else "image_url"] = media_url(m)
+            cid = call("POST", ep, p)["id"]
+            ig_wait(cid, tok)
+            ids.append(call("POST", f"{GRAPH}/{uid}/media_publish",
+                            {"creation_id": cid, "access_token": tok})["id"])
+        return ",".join(ids)
     else:  # feed
         cid = call("POST", ep, {"image_url": media_url(media[0]), "caption": cap,
                                 "access_token": tok})["id"]
@@ -123,12 +129,15 @@ def fb_publish(post):
                     {"file_url": media_url(media[0]), "description": cap,
                      "access_token": tok})["id"]
     if fmt == "story":
-        if is_video(media[0]):
-            raise ApiError("FB video story not supported by this script; skipped")
-        photo = call("POST", f"{GRAPH}/{pid}/photos",
-                     {"url": media_url(media[0]), "published": "false", "access_token": tok})
-        return call("POST", f"{GRAPH}/{pid}/photo_stories",
-                    {"photo_id": photo["id"], "access_token": tok}).get("post_id", photo["id"])
+        ids = []
+        for m in media:
+            if is_video(m):
+                raise ApiError("FB video story not supported by this script; skipped")
+            photo = call("POST", f"{GRAPH}/{pid}/photos",
+                         {"url": media_url(m), "published": "false", "access_token": tok})
+            ids.append(call("POST", f"{GRAPH}/{pid}/photo_stories",
+                            {"photo_id": photo["id"], "access_token": tok}).get("post_id", photo["id"]))
+        return ",".join(ids)
     if fmt == "carousel" and len(media) > 1:
         ids = []
         for m in media[:10]:
