@@ -1,0 +1,44 @@
+name: Travekorea autopost
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # setiap 15 menit (UTC); jadwal post tetap pakai KST di posts.json
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 = hanya simulasi, tidak posting"
+        default: "0"
+
+concurrency:            # cegah dua run jalan bersamaan (anti post dobel)
+  group: autopost
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Publish due posts
+        env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_IG_USER_ID: ${{ vars.META_IG_USER_ID }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          THREADS_USER_ID: ${{ vars.THREADS_USER_ID }}
+          MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || vars.DRY_RUN || '0' }}
+        run: python scripts/publish.py
+      - name: Save published state
+        if: always()
+        run: |
+          git config user.name "travekorea-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/published.json || true
+          git diff --cached --quiet || (git commit -m "autopost: update state [skip ci]" && git push)
